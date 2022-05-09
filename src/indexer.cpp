@@ -3,7 +3,7 @@
 void Indexer::assignRecursively(const uint32_t x, const uint32_t y) {
 
     auto & px = dest.at(x, y);
-    if (px.color != Pixel::colorMax or px.index != px.noIndex) {
+    if (px.color != Pixel::colorMax or px.isIndexed()) {
         return;
     }
 
@@ -29,7 +29,7 @@ void Indexer::assignIndex(const uint32_t x, const uint32_t y) {
 
     auto & px = dest.at(x, y);
     
-    if (px.color != Pixel::colorMax or px.index != px.noIndex) {
+    if (px.color != Pixel::colorMax or px.isIndexed()) {
         return;
     }
 

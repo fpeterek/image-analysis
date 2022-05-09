@@ -5,6 +5,9 @@
 #include "image.hpp"
 #include "thresholder.hpp"
 #include "indexer.hpp"
+#include "signals.hpp"
+
+namespace sig = signals;
 
 int main(int argc, const char * argv[]) {
     sf::Image in;
@@ -40,6 +43,14 @@ int main(int argc, const char * argv[]) {
     std::cout << "Image reconstructed" << std::endl;
 
     recon.saveToFile("indexed.png");
+
+    const auto signals = sig::getSignals(indexed);
+
+    for (const auto & [idx, sig] : signals) {
+        std::cout << "Object " << idx << " { perimeterAreaRatio: " << sig.perimeterAreaRatio
+                  << ", momentOfInertia: " << sig.momentOfInertia << " }\n";
+    }
+    std::flush(std::cout);
 
 }
 

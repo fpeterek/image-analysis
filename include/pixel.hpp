@@ -14,6 +14,8 @@ struct Pixel {
     std::uint8_t color = 0;
     std::uint32_t index = noIndex;
 
+    bool isIndexed() const;
+
 };
 
 #endif
