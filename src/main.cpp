@@ -10,7 +10,9 @@ int main(int argc, const char * argv[]) {
     sf::Image in;
     in.loadFromFile("resources/train/train.bmp");
     
-    Thresholder th;
+    /* Due to the simple nature of the input image, we can fine tune the threshold */
+    /* manually to suit our needs                                                  */
+    Thresholder<ConstantThreshold<50>> th;
     Indexer idx;
 
     std::vector<sf::Color> colors {

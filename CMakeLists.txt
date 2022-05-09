@@ -24,10 +24,12 @@ add_executable(
     src/image.cpp
     src/thresholder.cpp
     src/indexer.cpp
+    src/util.cpp
 
     include/image.hpp
     include/pixel.hpp
     include/thresholder.hpp
     include/indexer.hpp
+    include/util.hpp
 )
 
