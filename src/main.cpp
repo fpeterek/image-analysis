@@ -6,6 +6,7 @@
 #include "thresholder.hpp"
 #include "indexer.hpp"
 #include "signals.hpp"
+#include "kmeans.hpp"
 
 namespace sig = signals;
 
@@ -45,12 +46,16 @@ int main(int argc, const char * argv[]) {
     recon.saveToFile("indexed.png");
 
     const auto signals = sig::getSignals(indexed);
+    std::vector<sig::ObjectSignals> sigVec;
 
     for (const auto & [idx, sig] : signals) {
         std::cout << "Object " << idx << " { perimeterAreaRatio: " << sig.perimeterAreaRatio
                   << ", momentOfInertia: " << sig.momentOfInertia << " }\n";
+        sigVec.emplace_back(sig);
     }
     std::flush(std::cout);
+
+    const auto clusters = KMeans<3>().cluster(sigVec);
 
 }
 

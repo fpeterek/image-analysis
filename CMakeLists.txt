@@ -27,6 +27,7 @@ add_executable(
     src/util.cpp
     src/pixel.cpp
     src/signals.cpp
+    src/kmeans.cpp
 
     include/image.hpp
     include/pixel.hpp
@@ -34,5 +35,6 @@ add_executable(
     include/indexer.hpp
     include/util.hpp
     include/signals.hpp
+    include/kmeans.hpp
 )
 
