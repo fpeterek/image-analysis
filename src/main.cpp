@@ -57,5 +57,18 @@ int main(int argc, const char * argv[]) {
 
     const auto clusters = KMeans<3>().cluster(sigVec);
 
+    for (size_t i = 0; i < 3; ++i) {
+        const auto & cluster = clusters[i];
+
+        std::cout << "Cluster " << (i+1) << "\n\n";
+
+        for (const auto & s : cluster) {
+            std::cout << s.index << " { momentOfInertia: " << s.momentOfInertia << ", perimeterAreaRatio: " << s.perimeterAreaRatio
+                      << " }" << std::endl;
+        }
+
+        std::cout << "\n" << std::endl;
+    }
+
 }
 

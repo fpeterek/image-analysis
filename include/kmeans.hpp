@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <limits>
+#include <optional>
 #include <vector>
 #include <array>
 #include <random>
@@ -16,6 +17,7 @@ namespace km {
         double y;
     };
 
+
     typedef std::vector<signals::ObjectSignals> Signals;
 
     double distance(const Centroid & centroid, const signals::ObjectSignals & signals);
@@ -23,11 +25,13 @@ namespace km {
     constexpr int maxKMIterations = 10;
 }
 
+bool operator==(km::Centroid c1, km::Centroid c2);
+bool operator!=(km::Centroid c1, km::Centroid c2);
+
 template <uint64_t clusters>
 class KMeans {
 
-    std::random_device random;
-
+    std::mt19937 mt { std::random_device()() };
 
     std::array<km::Centroid, clusters> randCentroids(const km::Signals & signals);
     std::array<km::Signals, clusters> distribute(const km::Signals & signals, const std::array<km::Centroid, clusters> & centroids);
@@ -49,7 +53,7 @@ std::array<km::Centroid, clusters> KMeans<clusters>::randCentroids(const km::Sig
     std::vector<size_t> indices(signals.size());
     std::iota(indices.begin(), indices.end(), 0);
 
-    std::random_shuffle(indices.begin(), indices.end(), random);
+    std::shuffle(indices.begin(), indices.end(), mt);
 
     std::array<km::Centroid, clusters> centroids;
 
@@ -98,8 +102,8 @@ std::array<km::Centroid, clusters> KMeans<clusters>::calcCentroids(const std::ar
         double sumY = 0;
 
         for (const auto & signal : sigs) {
-            sumX += signal.x;
-            sumY += signal.y;
+            sumX += signal.perimeterAreaRatio;
+            sumY += signal.momentOfInertia;
         }
 
         if (sigs.empty()) {
@@ -130,16 +134,34 @@ double KMeans<clusters>::calcDistSse(const std::array<km::Signals, clusters> & s
 }
 
 template <uint64_t clusters>
+bool arrEq(const std::array<km::Centroid, clusters> & a1, const std::array<km::Centroid, clusters> & a2) {
+    auto i1 = a1.begin();
+    auto i2 = a2.begin();
+
+    while (i1 != a1.end()) {
+        if (*(i1++) != *(i2++)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template <uint64_t clusters>
 std::pair<std::array<km::Centroid, clusters>, std::array<km::Signals, clusters>> KMeans<clusters>::runIter(const km::Signals & signals) {
 
     auto centroids = randCentroids(signals);
     std::array<km::Signals, clusters> result;
 
     for (int i = 0; i < km::maxKMIterations; ++i) {
-        result = distribute(centroids, signals);
+        result = distribute(signals, centroids);
         auto newCentroids = calcCentroids(result);
 
-        if (newCentroids == centroids) {
+        // G++ appears to dislike the commented out code and thus I have to implement my own way
+        // of comparing arrays
+        /* if (newCentroids == centroids) { */
+        /*     break; */
+        /* } */
+        if (arrEq(newCentroids, centroids)) {
             break;
         }
 
@@ -163,7 +185,7 @@ std::array<std::vector<signals::ObjectSignals>, clusters> KMeans<clusters>::clus
 
         if (bestSse == -1 or sse > bestSse) {
             bestSse = sse;
-            bestIter = std::move(centroids);
+            bestIter = std::move(distribution);
         }
     }
 
