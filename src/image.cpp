@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <functional>
 #include <stdexcept>
+#include <iostream>
 
 #include <SFML/System.hpp>
 
@@ -66,7 +67,7 @@ sf::Vector2u Image::size() const {
         (std::uint32_t)img.front().size(),
         (std::uint32_t)img.size()
     };
-} 
+}
 
 uint32_t Image::width() const {
     return img.front().size();
@@ -84,6 +85,10 @@ Pixel & Image::at(const uint32_t x, const uint32_t y) {
     return img[y][x];
 }
 
+static std::ostream & operator<<(std::ostream & os, const sf::Color color) {
+    return os << int(color.r) << ", " << int(color.g) << ", " << int(color.b);
+}
+
 sf::Image Image::reconstruct(const std::vector<sf::Color> & colors) const {
     sf::Image img;
     img.create(width(), height(), sf::Color::Black);
@@ -91,8 +96,9 @@ sf::Image Image::reconstruct(const std::vector<sf::Color> & colors) const {
     for (uint32_t y = 0; y < height(); ++y) {
         for (uint32_t x = 0; x < width(); ++x) {
             auto & px = at(x, y);
-            
+
             if (px.isIndexed()) {
+                /* std::cout << px.index << " " << colors[px.index % colors.size()] << std::endl; */
                 img.setPixel(x, y, colors[px.index % colors.size()]);
             }
         }

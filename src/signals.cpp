@@ -2,9 +2,9 @@
 
 #include <cmath>
 #include <iostream>
+#include <functional>
 
 namespace signals {
-
 
     typedef std::unordered_map<uint32_t, std::pair<uint32_t, uint32_t>> IntPairMap;
     typedef std::unordered_map<uint32_t, std::pair<double, double>> DoublePairMap;
@@ -111,6 +111,7 @@ namespace signals {
 
         for (const auto & [idx, a] : area) {
             const auto c = circ.at(idx);
+            std::cout << "Object " << idx << " , perimeter: " << c << " , area: " << a << std::endl;
 
             sig[idx] = (c * c) / (100 * a);
         }
@@ -142,8 +143,12 @@ namespace signals {
         return sig;
     }
 
+    std::unordered_map<uint32_t, double> getPerimeters(const Image & img) {
+        return moment(img, 0, 0);
+    }
+
     std::unordered_map<uint32_t, ObjectSignals> getSignals(const Image & img) {
-        const auto m0 = moment(img, 0, 0);
+        const auto m0 = getPerimeters(img);
         const auto par = perimeterAreaRatio(img, m0);
         const auto moi = momentOfInertia(img, m0);
 

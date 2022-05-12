@@ -16,6 +16,8 @@ namespace signals {
     };
 
     std::unordered_map<uint32_t, ObjectSignals> getSignals(const Image & img);
+
+    std::unordered_map<uint32_t, double> getPerimeters(const Image & img);
 }
 
 

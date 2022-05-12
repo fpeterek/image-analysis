@@ -7,6 +7,7 @@
 #include "indexer.hpp"
 #include "signals.hpp"
 #include "kmeans.hpp"
+#include "filters.hpp"
 
 namespace sig = signals;
 
@@ -16,7 +17,7 @@ int main(int argc, const char * argv[]) {
     
     /* Due to the simple nature of the input image, we can fine tune the threshold */
     /* manually to suit our needs                                                  */
-    Thresholder<ConstantThreshold<50>> th;
+    Thresholder<ConstantThreshold<35>> th;
     Indexer idx;
 
     std::vector<sf::Color> colors {
@@ -40,12 +41,16 @@ int main(int argc, const char * argv[]) {
     std::cout << "Thresholds found" << std::endl;
     const auto indexed = idx.assignIndices(thresholds);
     std::cout << "Objects indexed" << std::endl;
-    const auto recon = indexed.reconstruct(colors);
+
+    const auto filtered = filterBySize(indexed, 10);
+    std::cout << "Small objects filtered" << std::endl;
+
+    const auto recon = filtered.reconstruct(colors);
     std::cout << "Image reconstructed" << std::endl;
 
     recon.saveToFile("indexed.png");
 
-    const auto signals = sig::getSignals(indexed);
+    const auto signals = sig::getSignals(filtered);
     std::vector<sig::ObjectSignals> sigVec;
 
     for (const auto & [idx, sig] : signals) {
