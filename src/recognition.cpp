@@ -2,29 +2,47 @@
 
 #include <cmath>
 
-
-Centroid RecognizerUtil::calculateCentroid(const Centroid & origCentroid, const std::vector<signals::ObjectSignals> & cluster) {
-
-    if (cluster.empty()) {
-        return origCentroid;
+Centroid RecognizerUtil::calculateCentroid(const Centroid & left, const Centroid & right) {
+    if (not (left.objects or right.objects)) {
+        return { };
     }
 
-    double paRatio = 0;
-    double moi = 0;
+    const auto totalObjects = left.objects + right.objects;
+    const auto origWeight = left.objects / (double)totalObjects;
+    const auto additionWeight = right.objects / (double)totalObjects;
 
-    const auto totalObjects = origCentroid.objects + cluster.size();
-    const auto origWeight = origCentroid.objects / (double)totalObjects;
-    const auto additionWeight = cluster.size() / (double)totalObjects;
+    return {
+        left.perimeterAreaRatio * origWeight + right.perimeterAreaRatio * additionWeight,
+        left.momentOfInertia * origWeight + right.momentOfInertia * additionWeight,
+        (std::uint32_t)totalObjects
+    };
+}
+
+Centroid RecognizerUtil::calculateCentroid(const Centroid & origCentroid, const std::vector<signals::ObjectSignals> & cluster) {
+    return calculateCentroid(origCentroid, calculateCentroid(cluster));
+}
+
+
+Centroid RecognizerUtil::calculateCentroid(const std::vector<signals::ObjectSignals> & cluster) {
+
+    if (cluster.empty()) {
+        return {};
+    }
+
+    double paTotal = 0;
+    double moiTotal = 0;
+
+    const double totalObjects = cluster.size();
 
     for (const auto & sig : cluster) {
-        paRatio += sig.perimeterAreaRatio;        
-        moi += sig.momentOfInertia;
+        paTotal += sig.perimeterAreaRatio;        
+        moiTotal += sig.momentOfInertia;
     }
 
     return {
-        origCentroid.perimeterAreaRatio * origWeight + paRatio * additionWeight,
-        origCentroid.momentOfInertia * origWeight + moi * additionWeight,
-        (std::uint32_t)totalObjects
+        paTotal / totalObjects,
+        moiTotal / totalObjects,
+        (std::uint32_t)cluster.size()
     };
 }
 

@@ -7,6 +7,7 @@
 #include <vector>
 #include <array>
 #include <random>
+#include <iostream>
 
 #include "signals.hpp"
 
@@ -40,6 +41,8 @@ class KMeans {
     double calcDistSse(const std::array<km::Signals, clusters> & signals, const std::array<km::Centroid, clusters> & centroids);
 
     std::pair<std::array<km::Centroid, clusters>, std::array<km::Signals, clusters>> runIter(const km::Signals & signals);
+
+    bool containsEmptyCluster(const std::array<km::Signals, clusters> & distribution);
 
 public:
 
@@ -83,7 +86,13 @@ std::array<km::Signals, clusters> KMeans<clusters>::distribute(const km::Signals
             }
         }
 
+        std::cout << sig.momentOfInertia << ", " << sig.perimeterAreaRatio << " Before emplacing at idx " << minCentroid << std::endl;
+        for (const auto & s : dist[minCentroid]) {
+            std::cout << s.momentOfInertia << ", " << s.perimeterAreaRatio << std::endl;
+        }
+        std::cout << "total size: " << dist[minCentroid].size() << std::endl;
         dist[minCentroid].emplace_back(sig);
+        std::cout << "Post emplace" << std::endl;
      }
 
      return dist;
@@ -153,8 +162,11 @@ std::pair<std::array<km::Centroid, clusters>, std::array<km::Signals, clusters>>
     std::array<km::Signals, clusters> result;
 
     for (int i = 0; i < km::maxKMIterations; ++i) {
+        std::cout << "Pre Iter distribution" << std::endl;
         result = distribute(signals, centroids);
+        std::cout << "Iter distribution" << std::endl;
         auto newCentroids = calcCentroids(result);
+        std::cout << "Centroids calculated" << std::endl;
 
         // G++ appears to dislike the commented out code and thus I have to implement my own way
         // of comparing arrays
@@ -165,12 +177,21 @@ std::pair<std::array<km::Centroid, clusters>, std::array<km::Signals, clusters>>
             break;
         }
 
-        centroids = std::move(newCentroids);
+        centroids = newCentroids;
     }
 
     return std::pair { centroids, result };
 }
 
+template <uint64_t clusters>
+bool KMeans<clusters>::containsEmptyCluster(const std::array<km::Signals, clusters> & distribution) {
+    for (const auto & cluster : distribution) {
+        if (cluster.empty()) {
+            return true;
+        }
+    }
+    return false;
+}
 
 template <uint64_t clusters>
 std::array<std::vector<signals::ObjectSignals>, clusters> KMeans<clusters>::cluster(const km::Signals & signals, const int attempts) {
@@ -180,13 +201,26 @@ std::array<std::vector<signals::ObjectSignals>, clusters> KMeans<clusters>::clus
 
     for (int i = 0; i < attempts; ++i) {
         
+        std::cout << "Running iteration" << std::endl;
         auto [centroids, distribution] = runIter(signals);
+
+        if (containsEmptyCluster(distribution)) {
+            continue;
+        }
+
+        std::cout << "Iteration performed" << std::endl;
         const auto sse = calcDistSse(distribution, centroids);
+        std::cout << "SSE calculated" << std::endl;
 
         if (bestSse == -1 or sse > bestSse) {
             bestSse = sse;
             bestIter = std::move(distribution);
         }
+        std::cout << "Moved" << std::endl;
+    }
+
+    if (bestSse < 0) {
+        throw std::runtime_error("Clustering failed (this should not have happened)");
     }
 
     return bestIter;

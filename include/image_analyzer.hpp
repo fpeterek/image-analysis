@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <stdexcept>
+#include <iostream>
 
 #include <SFML/Graphics.hpp>
 
@@ -34,7 +35,7 @@ struct Object {
 template <std::uint32_t objects, typename ThresholdProvider>
 class ImageAnalyzer {
 
-    static constexpr int minObjectSize = 10;
+    static constexpr int minObjectSize = 15;
 
     Thresholder<ThresholdProvider> tc;
     Indexer idx;
@@ -105,14 +106,17 @@ void ImageAnalyzer<objects, ThresholdProvider>::learn(const sf::Image & img, con
     reconstructIfDesired(filtered, flags);
 
     const auto signalMap = signals::getSignals(filtered);
+    std::cout << "Signals computed" << std::endl;
     
     std::vector<signals::ObjectSignals> sigVec(signalMap.size());
 
     for (const auto & [idx, sig] : signalMap) {
         sigVec[idx] = sig;
     }
+    std::cout << "Vector created" << std::endl;
 
     const auto clusters = KMeans<3>().cluster(sigVec);
+    std::cout << "Clustering performed" << std::endl;
 
     recognizer.learn(clusters);
 }
