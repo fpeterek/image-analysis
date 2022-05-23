@@ -86,13 +86,13 @@ std::array<km::Signals, clusters> KMeans<clusters>::distribute(const km::Signals
             }
         }
 
-        std::cout << sig.momentOfInertia << ", " << sig.perimeterAreaRatio << " Before emplacing at idx " << minCentroid << std::endl;
-        for (const auto & s : dist[minCentroid]) {
-            std::cout << s.momentOfInertia << ", " << s.perimeterAreaRatio << std::endl;
-        }
-        std::cout << "total size: " << dist[minCentroid].size() << std::endl;
+        /* std::cout << sig.momentOfInertia << ", " << sig.perimeterAreaRatio << " Before emplacing at idx " << minCentroid << std::endl; */
+        /* for (const auto & s : dist[minCentroid]) { */
+        /*     std::cout << s.momentOfInertia << ", " << s.perimeterAreaRatio << std::endl; */
+        /* } */
+        /* std::cout << "total size: " << dist[minCentroid].size() << std::endl; */
         dist[minCentroid].emplace_back(sig);
-        std::cout << "Post emplace" << std::endl;
+        /* std::cout << "Post emplace" << std::endl; */
      }
 
      return dist;

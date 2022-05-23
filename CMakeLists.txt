@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 project(fourier_transform)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_FLAGS "-fsanitize=address")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
