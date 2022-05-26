@@ -15,7 +15,7 @@ static void reindex(Image & img) {
             auto & pixel = img.at(x, y);
 
             if (pixel.isIndexed()) {
-                if (indexMap.count(pixel.index)) {
+                if (not indexMap.count(pixel.index)) {
                     indexMap[pixel.index] = idx++;
                 }
 
@@ -36,7 +36,7 @@ Image filterBySize(const Image & input, const int threshold) {
         for (uint64_t y = 0; y < dest.height(); ++y) {
             auto & pixel = dest.at(x, y);
             if (pixel.isIndexed() and perimeters.at(pixel.index) < threshold) {
-                pixel.index = 0;
+                pixel.index = Pixel::noIndex;
                 pixel.color = 0;
             }
         }
