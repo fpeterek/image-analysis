@@ -44,6 +44,8 @@ class KMeans {
 
     bool containsEmptyCluster(const std::array<km::Signals, clusters> & distribution);
 
+
+    bool arrEq(const std::array<km::Centroid, clusters> & a1, const std::array<km::Centroid, clusters> & a2);
 public:
 
     std::array<std::vector<signals::ObjectSignals>, clusters> cluster(const std::vector<signals::ObjectSignals> & signals, const int attempts = 10);
@@ -143,11 +145,11 @@ double KMeans<clusters>::calcDistSse(const std::array<km::Signals, clusters> & s
 }
 
 template <uint64_t clusters>
-bool arrEq(const std::array<km::Centroid, clusters> & a1, const std::array<km::Centroid, clusters> & a2) {
-    auto i1 = a1.begin();
-    auto i2 = a2.begin();
+bool KMeans<clusters>::arrEq(const std::array<km::Centroid, clusters> & a1, const std::array<km::Centroid, clusters> & a2) {
+    auto i1 = a1.cbegin();
+    auto i2 = a2.cbegin();
 
-    while (i1 != a1.end()) {
+    while (i1 != a1.cend()) {
         if (*(i1++) != *(i2++)) {
             return false;
         }

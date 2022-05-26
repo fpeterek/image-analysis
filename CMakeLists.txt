@@ -5,9 +5,18 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "-fsanitize=address")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+set(CMAKE_OSX_ARCHITECTURES arm64)
 
-include_directories(./include /usr/include)
-link_directories(/usr/lib)
+include_directories(
+    ./include
+    /usr/include
+    /opt/homebrew/include
+)
+
+link_directories(
+    /usr/lib
+    /opt/homebrew/lib
+)
 
 link_libraries(
     -lsfml-audio
