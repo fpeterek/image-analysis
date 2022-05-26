@@ -110,11 +110,9 @@ void ImageAnalyzer<objects, ThresholdProvider>::learn(const sf::Image & img, con
     
     std::vector<signals::ObjectSignals> sigVec(signalMap.size());
 
-    /* for (const auto & [idx, sig] : signalMap) { */
-    /*     std::cout << idx << std::endl; */
-    /*     sigVec[idx] = sig; */
-    /* } */
-    /* std::cout << "Vector created" << std::endl; */
+    for (const auto & [idx, sig] : signalMap) {
+        sigVec[idx] = sig;
+    }
 
     const auto clusters = KMeans<3>().cluster(sigVec);
     std::cout << "Clustering performed" << std::endl;
