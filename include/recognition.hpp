@@ -29,6 +29,9 @@ class Recognizer {
 
     std::uint32_t findClosestCentroid(const Centroid & centroid);
 
+    void assign(const std::array<std::vector<signals::ObjectSignals>, objects> & clusters);
+    void assign(const std::vector<signals::ObjectSignals> & signals);
+
 public:
 
     Recognizer() = default;
@@ -73,6 +76,10 @@ Recognizer<objects>::Recognizer(const std::array<std::vector<signals::ObjectSign
 template <std::uint32_t objects>
 void Recognizer<objects>::learn(const std::array<std::vector<signals::ObjectSignals>, objects> & toLearn) {
 
+    if (untrained()) {
+        return assign(toLearn);
+    }
+
     for (const auto & vector : toLearn) {
         learn(vector);
     }
@@ -88,6 +95,15 @@ std::uint32_t Recognizer<objects>::findClosestCentroid(const Centroid & centroid
         centroid.perimeterAreaRatio,
         centroid.momentOfInertia
     });
+}
+
+template <std::uint32_t objects>
+void Recognizer<objects>::assign(const std::array<std::vector<signals::ObjectSignals>, objects> & clusters) {
+
+    for (std::uint32_t i = 0; i < objects; ++i) {
+        const auto centroid = RecognizerUtil::calculateCentroid(clusters[i]);
+        centroids[i] = centroid;
+    }
 }
 
 template <std::uint32_t objects>
