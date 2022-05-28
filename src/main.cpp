@@ -18,6 +18,7 @@ int main(int argc, const char * argv[]) {
     ImageAnalyzer<3, ConstantThreshold<35>> analyzer;
 
     analyzer.learn("resources/train/train.bmp");
+    /* analyzer.recognize(const sf::Image &img) */
 
 }
 

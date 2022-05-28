@@ -58,11 +58,14 @@ class ImageAnalyzer {
         sf::Color(252, 3, 119)
     };
 
+    std::vector<signals::ObjectSignals> calcSignals(const Image & img, const int flags);
+
     void reconstructIfDesired(const Image & img, const int flags);
 
 public:
 
     struct Flags {
+        const static int none = 0;
         const static int surfaceRecognition = 1;
         const static int annotateRecognized = 2;
 
@@ -71,8 +74,8 @@ public:
         const static int ar = annotateRecognized;
     };
 
-    void learn(const sf::Image & img, const int flags = Flags::sr | Flags::ar);
-    void learn(const std::string & filename, const int flags = Flags::sr | Flags::ar);
+    void learn(const sf::Image & img, const int flags);
+    void learn(const std::string & filename, const int flags);
 
     std::vector<Object> recognize(const sf::Image & img, const int flags = Flags::sr | Flags::ar);
 
@@ -96,8 +99,41 @@ void ImageAnalyzer<objects, ThresholdProvider>::learn(const std::string & filena
     learn(img, flags);
 }
 
+
+template <std::uint32_t objects, typename ThresholdProvider>
+std::vector<signals::ObjectSignals> ImageAnalyzer<objects, ThresholdProvider>::calcSignals(const Image & img, const int flags) {
+
+    const auto thresholds = tc.findThresholds(img);
+    const auto indexed = idx.assignIndices(thresholds);
+    
+    const auto filtered = filterBySize(indexed, minObjectSize);
+    reconstructIfDesired(filtered, flags);
+
+    const auto signalMap = signals::getSignals(filtered);
+    
+    std::vector<signals::ObjectSignals> sigVec(signalMap.size());
+
+    for (const auto & [idx, sig] : signalMap) {
+        sigVec[idx] = sig;
+    }
+
+    return sigVec;
+}
+
+
 template <std::uint32_t objects, typename ThresholdProvider>
 void ImageAnalyzer<objects, ThresholdProvider>::learn(const sf::Image & img, const int flags) {
+
+    const auto sigVec = calcSignals(img, flags);
+
+    const auto clusters = KMeans<3>().cluster(sigVec);
+    std::cout << "Clustering performed" << std::endl;
+
+    recognizer.learn(clusters);
+}
+
+template <std::uint32_t objects, typename ThresholdProvider>
+std::vector<Object> ImageAnalyzer<objects, ThresholdProvider>::recognize(const sf::Image & img, const int flags) {
 
     const auto thresholds = tc.findThresholds(img);
     const auto indexed = idx.assignIndices(thresholds);
@@ -115,12 +151,7 @@ void ImageAnalyzer<objects, ThresholdProvider>::learn(const sf::Image & img, con
     }
 
     const auto clusters = KMeans<3>().cluster(sigVec);
-    std::cout << "Clustering performed" << std::endl;
-
-    recognizer.learn(clusters);
 }
-
-
 
 #endif
 
