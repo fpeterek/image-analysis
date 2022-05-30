@@ -43,6 +43,7 @@ class ImageAnalyzer {
     Thresholder<ThresholdProvider> tc;
     Indexer idx;
     Recognizer<objects> recognizer;
+    sf::Font font;
 
     std::vector<sf::Color> colors {
         sf::Color(252, 186, 3),
@@ -63,7 +64,12 @@ class ImageAnalyzer {
 
     std::vector<signals::ObjectSignals> calcSignals(const Image & img, const int flags);
 
-    void reconstructIfDesired(const Image & img, const int flags);
+    void annotateObjects(const Image & img, const std::vector<Object> & obj, const int flags, const std::string filename);
+
+    void reconstructIfDesired(const Image & img, const int flags, const std::string filename);
+    void annotateObjectsIfDesired(const Image & img, const std::vector<Object> & obj, const int flags, const std::string filename);
+
+    void recognizeObjects(const std::vector<signals::ObjectSignals> & signals, std::vector<Object> & obj);
 
 public:
 
@@ -77,17 +83,27 @@ public:
         const static int ar = annotateRecognized;
     };
 
-    void learn(const sf::Image & img, const int flags = Flags::none);
-    void learn(const std::string & filename, const int flags = Flags::none);
+    ImageAnalyzer();
+
+    void learn(const sf::Image & img, const int flags = Flags::sr | Flags::ar);
+    void learn(const std::string & filename, const int flags = Flags::sr | Flags::ar);
 
     std::vector<Object> recognize(const sf::Image & img, const int flags = Flags::sr | Flags::ar);
 
 };
 
+
 template <std::uint32_t objects, typename ThresholdProvider>
-void ImageAnalyzer<objects, ThresholdProvider>::reconstructIfDesired(const Image & img, const int flags) {
+ImageAnalyzer<objects, ThresholdProvider>::ImageAnalyzer() {
+    if (not font.loadFromFile("resources/Inconsolata-Regular.ttf")) {
+        throw std::runtime_error("Font could not be loaded.");
+    }
+}
+
+template <std::uint32_t objects, typename ThresholdProvider>
+void ImageAnalyzer<objects, ThresholdProvider>::reconstructIfDesired(const Image & img, const int flags, const std::string file) {
     if (flags & Flags::surfaceRecognition) {
-        img.reconstruct(colors).saveToFile("reconstructed.png");
+        img.reconstruct(colors).saveToFile(file);
     }
 }
 
@@ -106,12 +122,7 @@ void ImageAnalyzer<objects, ThresholdProvider>::learn(const std::string & filena
 template <std::uint32_t objects, typename ThresholdProvider>
 std::vector<signals::ObjectSignals> ImageAnalyzer<objects, ThresholdProvider>::calcSignals(const Image & img, const int flags) {
 
-    const auto indexed = idx.assignIndices(img);
-    
-    const auto filtered = filterBySize(indexed, minObjectSize);
-    reconstructIfDesired(filtered, flags);
-
-    const auto signalMap = signals::getSignals(filtered);
+    const auto signalMap = signals::getSignals(img);
     
     std::vector<signals::ObjectSignals> sigVec(signalMap.size());
 
@@ -127,21 +138,81 @@ template <std::uint32_t objects, typename ThresholdProvider>
 void ImageAnalyzer<objects, ThresholdProvider>::learn(const sf::Image & img, const int flags) {
 
     const auto thresholds = tc.findThresholds(img);
-    const auto sigVec = calcSignals(thresholds, flags);
+    const auto indexed = idx.assignIndices(thresholds);
+    const auto filtered = filterBySize(indexed, minObjectSize);
+    reconstructIfDesired(filtered, flags, "learning.reconstructed.png");
+
+    const auto sigVec = calcSignals(filtered, flags);
     const auto clusters = KMeans<3>().cluster(sigVec);
 
     recognizer.learn(clusters);
 }
 
 template <std::uint32_t objects, typename ThresholdProvider>
+void ImageAnalyzer<objects, ThresholdProvider>::recognizeObjects(const std::vector<signals::ObjectSignals> & signals, std::vector<Object> & obj) {
+
+    for (const auto & sig : signals) {
+        obj[sig.index].type = recognizer.recognize(sig);
+    }
+
+}
+
+template <std::uint32_t objects, typename ThresholdProvider>
 std::vector<Object> ImageAnalyzer<objects, ThresholdProvider>::recognize(const sf::Image & img, const int flags) {
 
     const auto thresholds = tc.findThresholds(img);
-    const auto sigVec = calcSignals(thresholds, flags);
+    const auto indexed = idx.assignIndices(thresholds);
+    const auto filtered = filterBySize(indexed, minObjectSize);
+    reconstructIfDesired(filtered, flags, "recognition.reconstructed.png");
 
+    const auto sigVec = calcSignals(filtered, flags);
+    const auto objectVec = extractObjects(thresholds);
 
+    recognizeObjects(sigVec, objectVec);
 
+    annotateObjectsIfDesired(indexed, objectVec, flags, "recognition.objects.png");
 
+    return objectVec;
+}
+
+template <std::uint32_t objects, typename ThresholdProvider>
+void ImageAnalyzer<objects, ThresholdProvider>::annotateObjects(const Image & img, const std::vector<Object> & obj, const int flags, const std::string file) {
+    auto rec = img.reconstruct(colors);
+
+    sf::RenderTexture tex;
+    tex.create(rec.getSize().x, rec.getSize().y);
+
+    {
+        sf::Texture texture;
+        texture.loadFromImage(rec);
+
+        tex.draw(sf::Sprite { texture });
+    }
+
+    for (const auto & o : obj) {
+        sf::Text text;
+        text.setFont(font);
+        text.setCharacterSize(10);
+        text.setFillColor(sf::Color::White);
+        text.setString(std::to_string(o.type));
+        text.setOutlineThickness(1);
+        text.setOutlineColor(sf::Color::Black);
+
+        text.setOrigin(text.getGlobalBounds().width / 2.f, text.getGlobalBounds().height / 2.f);
+        text.setPosition(
+            o.bounds.leftTop.x + (o.bounds.rightBottom.x - o.bounds.leftTop.x) / 2.f,
+            o.bounds.leftTop.y + (o.bounds.rightBottom.y - o.bounds.leftTop.y) / 2.f
+        );
+    }
+
+    tex.getTexture().copyToImage().saveToFile(file);
+}
+
+template <std::uint32_t objects, typename ThresholdProvider>
+void ImageAnalyzer<objects, ThresholdProvider>::annotateObjectsIfDesired(const Image & img, const std::vector<Object> & obj, const int flags, const std::string file) {
+    if (flags & Flags::annotateRecognized) {
+        annotateObjects(img, obj, flags, file);
+    }
 }
 
 #endif
