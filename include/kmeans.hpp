@@ -8,6 +8,7 @@
 #include <array>
 #include <random>
 #include <iostream>
+#include <limits>
 
 #include "signals.hpp"
 
@@ -131,7 +132,7 @@ double KMeans<clusters>::calcDistSse(const std::array<km::Signals, clusters> & s
         const auto & cluster = signals[i];
 
         for (const auto & sig : cluster) {
-            const auto dist = km::distance(centroid, sig);
+            const auto dist = 10000 * km::distance(centroid, sig);
             distances += dist * dist;
         }
     }
@@ -190,7 +191,7 @@ bool KMeans<clusters>::containsEmptyCluster(const std::array<km::Signals, cluste
 template <uint64_t clusters>
 std::array<std::vector<signals::ObjectSignals>, clusters> KMeans<clusters>::cluster(const km::Signals & signals, const int attempts) {
 
-    double bestSse = -1;
+    double bestSse = std::numeric_limits<double>::max();
     std::array<std::vector<signals::ObjectSignals>, clusters> bestIter;
 
     for (int i = 0; i < attempts; ++i) {
@@ -203,7 +204,7 @@ std::array<std::vector<signals::ObjectSignals>, clusters> KMeans<clusters>::clus
 
         const auto sse = calcDistSse(distribution, centroids);
 
-        if (sse > bestSse) {
+        if (sse < bestSse) {
             bestSse = sse;
             bestIter = std::move(distribution);
         }
@@ -212,6 +213,7 @@ std::array<std::vector<signals::ObjectSignals>, clusters> KMeans<clusters>::clus
     if (bestSse < 0) {
         throw std::runtime_error("Clustering failed (this should not have happened)");
     }
+
 
     return bestIter;
 }

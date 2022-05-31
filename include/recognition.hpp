@@ -5,6 +5,7 @@
 #include <vector>
 #include <array>
 #include <cstdint>
+#include <iostream>
 
 #include "signals.hpp"
 
@@ -124,7 +125,7 @@ std::uint32_t Recognizer<objects>::recognize(const signals::ObjectSignals & sign
 
     std::uint32_t minDistIdx;
     double minDist = -1;
-    
+
     for (std::uint32_t i = 0; i < objects; ++i) {
         const auto dist = RecognizerUtil::calcDistance(centroids[i], signals);
 
@@ -133,6 +134,7 @@ std::uint32_t Recognizer<objects>::recognize(const signals::ObjectSignals & sign
             minDistIdx = i;
         }
     }
+
     return minDistIdx; 
 }
 

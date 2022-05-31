@@ -98,7 +98,6 @@ sf::Image Image::reconstruct(const std::vector<sf::Color> & colors) const {
             auto & px = at(x, y);
 
             if (px.isIndexed()) {
-                /* std::cout << px.index << " " << colors[px.index % colors.size()] << std::endl; */
                 img.setPixel(x, y, colors[px.index % colors.size()]);
             }
         }

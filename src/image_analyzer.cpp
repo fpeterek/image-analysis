@@ -15,6 +15,20 @@ static std::vector<Object> toVector(const std::unordered_map<std::uint32_t, Obje
     return vec;
 }
 
+static Object & emplace(const Image & img, std::unordered_map<std::uint32_t, Object> & map, const std::uint32_t idx) { 
+
+    auto iter = map.find(idx);
+
+    if (iter != map.end()) {
+        return iter->second;
+    }
+
+    auto & obj = map[idx];
+    obj.bounds.leftTop = { img.width(), img.height() };
+
+    return obj;
+}
+
 
 std::vector<Object> extractObjects(const Image & img) {
     std::unordered_map<std::uint32_t, Object> objects;
@@ -27,7 +41,7 @@ std::vector<Object> extractObjects(const Image & img) {
                 continue;
             }
 
-            auto & obj = objects[px.index];
+            auto & obj = emplace(img, objects, px.index);
             obj.bounds.leftTop.x = std::min(obj.bounds.leftTop.x, x);
             obj.bounds.leftTop.y = std::min(obj.bounds.leftTop.y, y);
             obj.bounds.rightBottom.x = std::max(obj.bounds.rightBottom.x, x);

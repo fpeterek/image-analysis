@@ -89,6 +89,7 @@ public:
     void learn(const std::string & filename, const int flags = Flags::sr | Flags::ar);
 
     std::vector<Object> recognize(const sf::Image & img, const int flags = Flags::sr | Flags::ar);
+    std::vector<Object> recognize(const std::string & filename, const int flags = Flags::sr | Flags::ar);
 
 };
 
@@ -143,9 +144,6 @@ void ImageAnalyzer<objects, ThresholdProvider>::learn(const sf::Image & img, con
     reconstructIfDesired(filtered, flags, "learning.reconstructed.png");
 
     const auto sigVec = calcSignals(filtered, flags);
-    /* for (const signals::ObjectSignals & sig : sigVec) { */
-    /*     std::cout << sig.index << " " << sig.momentOfInertia << " " << sig.perimeterAreaRatio << std::endl; */
-    /* } */
     const auto clusters = KMeans<3>().cluster(sigVec);
 
     recognizer.learn(clusters);
@@ -169,7 +167,7 @@ std::vector<Object> ImageAnalyzer<objects, ThresholdProvider>::recognize(const s
     reconstructIfDesired(filtered, flags, "recognition.reconstructed.png");
 
     const auto sigVec = calcSignals(filtered, flags);
-    const auto objectVec = extractObjects(thresholds);
+    auto objectVec = extractObjects(filtered);
 
     recognizeObjects(sigVec, objectVec);
 
@@ -177,6 +175,17 @@ std::vector<Object> ImageAnalyzer<objects, ThresholdProvider>::recognize(const s
 
     return objectVec;
 }
+
+template <std::uint32_t objects, typename ThresholdProvider>
+std::vector<Object> ImageAnalyzer<objects, ThresholdProvider>::recognize(const std::string & filename, const int flags) {
+    sf::Image img;
+    if (not img.loadFromFile(filename)) {
+        throw std::runtime_error("File " + filename + " not found");
+    }
+
+    return recognize(img, flags);
+}
+
 
 template <std::uint32_t objects, typename ThresholdProvider>
 void ImageAnalyzer<objects, ThresholdProvider>::annotateObjects(const Image & img, const std::vector<Object> & obj, const int flags, const std::string file) {
@@ -195,10 +204,10 @@ void ImageAnalyzer<objects, ThresholdProvider>::annotateObjects(const Image & im
     for (const auto & o : obj) {
         sf::Text text;
         text.setFont(font);
-        text.setCharacterSize(10);
+        text.setCharacterSize(30);
         text.setFillColor(sf::Color::White);
         text.setString(std::to_string(o.type));
-        text.setOutlineThickness(1);
+        text.setOutlineThickness(2);
         text.setOutlineColor(sf::Color::Black);
 
         text.setOrigin(text.getGlobalBounds().width / 2.f, text.getGlobalBounds().height / 2.f);
@@ -206,9 +215,16 @@ void ImageAnalyzer<objects, ThresholdProvider>::annotateObjects(const Image & im
             o.bounds.leftTop.x + (o.bounds.rightBottom.x - o.bounds.leftTop.x) / 2.f,
             o.bounds.leftTop.y + (o.bounds.rightBottom.y - o.bounds.leftTop.y) / 2.f
         );
+        tex.draw(text);
     }
 
-    tex.getTexture().copyToImage().saveToFile(file);
+    sf::Image dest = tex.getTexture().copyToImage();
+
+    // For some reason, the output image is flipped, and thus has to be flipped
+    // once more to obtain the proper orientation
+    dest.flipVertically();
+
+    dest.saveToFile(file);
 }
 
 template <std::uint32_t objects, typename ThresholdProvider>
