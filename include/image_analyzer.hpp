@@ -143,6 +143,9 @@ void ImageAnalyzer<objects, ThresholdProvider>::learn(const sf::Image & img, con
     reconstructIfDesired(filtered, flags, "learning.reconstructed.png");
 
     const auto sigVec = calcSignals(filtered, flags);
+    /* for (const signals::ObjectSignals & sig : sigVec) { */
+    /*     std::cout << sig.index << " " << sig.momentOfInertia << " " << sig.perimeterAreaRatio << std::endl; */
+    /* } */
     const auto clusters = KMeans<3>().cluster(sigVec);
 
     recognizer.learn(clusters);

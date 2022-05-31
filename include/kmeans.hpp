@@ -65,7 +65,7 @@ std::array<km::Centroid, clusters> KMeans<clusters>::randCentroids(const km::Sig
     for (uint64_t i = 0; i < clusters; ++i) {
         const auto idx = indices[i];
         const auto & sig = signals[idx];
-        centroids[idx] = { sig.perimeterAreaRatio, sig.momentOfInertia };
+        centroids[i] = { sig.perimeterAreaRatio, sig.momentOfInertia };
     }
 
     return centroids;
