@@ -153,6 +153,7 @@ template <std::uint32_t objects, typename ThresholdProvider>
 void ImageAnalyzer<objects, ThresholdProvider>::recognizeObjects(const std::vector<signals::ObjectSignals> & signals, std::vector<Object> & obj) {
 
     for (const auto & sig : signals) {
+        std::cout << sig.index << " " << sig.momentOfInertia << " " << sig.perimeterAreaRatio << std::endl;
         obj[sig.index].type = recognizer.recognize(sig);
     }
 

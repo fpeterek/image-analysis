@@ -71,10 +71,9 @@ namespace signals {
                 return;
             }
 
-            const auto xcm = massCenter.at(px.index).first;
-            const auto ycm = massCenter.at(px.index).second;
+            const auto [xcm, ycm] = massCenter.at(px.index);
 
-            muMap[px.index] += std::pow(x - xcm, xExp) + std::pow(y - ycm, yExp);
+            muMap[px.index] += std::pow(x - xcm, xExp) * std::pow(y - ycm, yExp);
         };
 
         forAll(img, fn);
@@ -144,11 +143,15 @@ namespace signals {
     }
 
     std::unordered_map<uint32_t, double> getPerimeters(const Image & img) {
+        return circumference(img);
+    }
+
+    std::unordered_map<uint32_t, double> getArea(const Image & img) {
         return moment(img, 0, 0);
     }
 
     std::unordered_map<uint32_t, ObjectSignals> getSignals(const Image & img) {
-        const auto m0 = getPerimeters(img);
+        const auto m0 = getArea(img);
         const auto par = perimeterAreaRatio(img, m0);
         const auto moi = momentOfInertia(img, m0);
 
