@@ -41,6 +41,7 @@ add_executable(
     src/filters.cpp
     src/image_analyzer.cpp
     src/recognition.cpp
+    src/neural_network.cpp
 
     include/image.hpp
     include/pixel.hpp
@@ -52,5 +53,6 @@ add_executable(
     include/filters.hpp
     include/image_analyzer.hpp
     include/recognition.hpp
+    include/neural_network.hpp
 )
 
