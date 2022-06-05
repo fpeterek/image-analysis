@@ -1,5 +1,6 @@
 #include "neural_network.hpp"
 #include <SFML/Graphics/PrimitiveType.hpp>
+#include <limits>
 #include <stdexcept>
 
 
@@ -190,7 +191,7 @@ std::vector<double> BackpropagationNetwork::adjustOutputLayer(const std::vector<
     for (size_t i = 0; i < outputs.size(); ++i) {
         const double expVal = (i == expected);
         const double received = outputs[i];
-        const double error = (expected - received) * lambda * received * (1 - received);
+        const double error = (expVal - received) * lambda * received * (1 - received);
         errors.emplace_back(error);
 
         Neuron & neuron = layers.back()[i];
@@ -202,18 +203,25 @@ std::vector<double> BackpropagationNetwork::adjustOutputLayer(const std::vector<
     return errors;
 }
 
-std::vector<double> BackpropagationNetwork::adjustHiddenLayer(const std::vector<double> & inputs, const std::vector<double> & outputs, std::vector<Neuron> & layer, const std::vector<double> & prevErrors, const size_t expected) {
+std::vector<double> BackpropagationNetwork::adjustHiddenLayer(const std::vector<double> & inputs, const std::vector<double> & outputs, const size_t layer, const std::vector<double> & followingLayerErrors, const size_t expected) {
 
     std::vector<double> errors;
 
+    auto & currentLayer = layers[layer];
+    auto & followingLayer = layers[layer+1];
+
     for (size_t i = 0; i < outputs.size(); ++i) {
-        const double expVal = (i == expected);
         const double received = outputs[i];
-        // TODO:
-        const double error = (expected - received) * lambda * received * (1 - received);
+        double error = 0.0;
+
+        for (size_t j = 0; j < followingLayer.size(); ++j) {
+            error += followingLayerErrors[j] * followingLayer[j].weights[i];
+        }
+
+        error *= lambda * received * (1 - received);
         errors.emplace_back(error);
 
-        Neuron & neuron = layers.back()[i];
+        Neuron & neuron = currentLayer[i];
         for (size_t j = 0; j < neuron.weights.size(); ++j) {
             neuron.weights[j] += eta * error * inputs[j];
         }
@@ -231,6 +239,13 @@ bool BackpropagationNetwork::teachIteration(const std::vector<double> & signals,
 
     if (error < threshold) {
         return true;
+    }
+
+    std::vector<double> errors = adjustOutputLayer(outputs[outputs.size()-2], outputs[outputs.size()-1], expected);
+
+    // No need to adjust weights on input layer, thus, i != 0
+    for (size_t i = outputs.size()-2; i != 0; --i) {
+        errors = adjustHiddenLayer(outputs[i-1], outputs[i], i, errors, expected);
     }
 
     return false;

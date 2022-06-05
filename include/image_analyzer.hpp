@@ -45,6 +45,9 @@ class ImageAnalyzer {
     Recognizer<objects> recognizer;
     sf::Font font;
 
+    BackpropagationNetwork nn { activ::createSigmoid(1.0), 2, 3, 1, 4 };
+
+
     std::vector<sf::Color> colors {
         sf::Color(252, 186, 3),
         sf::Color(252, 244, 3),
@@ -144,9 +147,19 @@ void ImageAnalyzer<objects, ThresholdProvider>::learn(const sf::Image & img, con
     reconstructIfDesired(filtered, flags, "learning.reconstructed.png");
 
     const auto sigVec = calcSignals(filtered, flags);
-    const auto clusters = KMeans<3>().cluster(sigVec);
+    const auto clusters = KMeans<objects>().cluster(sigVec);
 
     recognizer.learn(clusters);
+
+    // Teach the neural network
+    for (const auto & sig : sigVec) {
+        const auto type = recognizer.recognize(sig);
+        std::vector<double> sigs; 
+        sigs.emplace_back(sig.perimeterAreaRatio);
+        sigs.emplace_back(sig.momentOfInertia);
+        nn.teach(sigs, type);
+    }
+
 }
 
 template <std::uint32_t objects, typename ThresholdProvider>
@@ -154,7 +167,10 @@ void ImageAnalyzer<objects, ThresholdProvider>::recognizeObjects(const std::vect
 
     for (const auto & sig : signals) {
         std::cout << sig.index << " " << sig.momentOfInertia << " " << sig.perimeterAreaRatio << std::endl;
-        obj[sig.index].type = recognizer.recognize(sig);
+        std::vector<double> sigs;
+        sigs.emplace_back(sig.perimeterAreaRatio);
+        sigs.emplace_back(sig.momentOfInertia);
+        obj[sig.index].type = nn.predict(sigs); //recognizer.recognize(sig);
     }
 
 }

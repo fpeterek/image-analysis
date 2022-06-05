@@ -72,7 +72,7 @@ class BackpropagationNetwork {
 
     std::vector<double> adjustOutputLayer(const std::vector<double> & inputs, const std::vector<double> & outputs, size_t expected);
 
-    std::vector<double> adjustHiddenLayer(const std::vector<double> & inputs, const std::vector<double> & outputs, std::vector<Neuron> & layer, const std::vector<double> & prevErrors, size_t expected);
+    std::vector<double> adjustHiddenLayer(const std::vector<double> & inputs, const std::vector<double> & outputs, size_t layer, const std::vector<double> & prevErrors, size_t expected);
 
     bool teachIteration(const std::vector<double> & signals, size_t expected);
 

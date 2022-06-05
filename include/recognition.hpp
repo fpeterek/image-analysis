@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <iostream>
 
+#include "neural_network.hpp"
 #include "signals.hpp"
 
 struct Centroid {
@@ -49,7 +50,6 @@ public:
     std::vector<std::uint32_t> recognize(const std::vector<signals::ObjectSignals> & signals);
 
     bool untrained();
-
 };
 
 
