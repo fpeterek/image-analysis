@@ -183,18 +183,43 @@ double BackpropagationNetwork::calcNetworkError(const std::vector<double> & sign
     return error;
 }
 
-double BackpropagationNetwork::adjustOutputLayer(const std::vector<double> & signals, const size_t expected) {
-    
-    for (size_t i = 0; i < signals.size(); ++i) {
-        const double expVal = (i == expected);
-        const double received = signals[i];
-        const double error = (expected - received) * lambda * received * (1 - received);
+std::vector<double> BackpropagationNetwork::adjustOutputLayer(const std::vector<double> & inputs, const std::vector<double> & outputs, const size_t expected) {
 
-        const double dw = eta * error * received;
-        // TODO: Fix
+    std::vector<double> errors;
+    
+    for (size_t i = 0; i < outputs.size(); ++i) {
+        const double expVal = (i == expected);
+        const double received = outputs[i];
+        const double error = (expected - received) * lambda * received * (1 - received);
+        errors.emplace_back(error);
+
+        Neuron & neuron = layers.back()[i];
+        for (size_t j = 0; j < neuron.weights.size(); ++j) {
+            neuron.weights[j] += eta * error * inputs[j];
+        }
     }
 
-    return 0.0;
+    return errors;
+}
+
+std::vector<double> BackpropagationNetwork::adjustHiddenLayer(const std::vector<double> & inputs, const std::vector<double> & outputs, std::vector<Neuron> & layer, const std::vector<double> & prevErrors, const size_t expected) {
+
+    std::vector<double> errors;
+
+    for (size_t i = 0; i < outputs.size(); ++i) {
+        const double expVal = (i == expected);
+        const double received = outputs[i];
+        // TODO:
+        const double error = (expected - received) * lambda * received * (1 - received);
+        errors.emplace_back(error);
+
+        Neuron & neuron = layers.back()[i];
+        for (size_t j = 0; j < neuron.weights.size(); ++j) {
+            neuron.weights[j] += eta * error * inputs[j];
+        }
+    }
+
+    return errors;
 }
 
 bool BackpropagationNetwork::teachIteration(const std::vector<double> & signals, const size_t expected) {
