@@ -50,8 +50,8 @@ class BackpropagationNetwork {
 
     double lambda = 1.0;
     double eta = 0.1;
-    double threshold = 0.1;
-    int iterations = 10;
+    double threshold = 0.005;
+    int iterations = 1000;
 
     std::vector<Layer> layers;
     std::mt19937 rnd { std::random_device()() };

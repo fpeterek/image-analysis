@@ -1,5 +1,6 @@
 #include "neural_network.hpp"
-#include <SFML/Graphics/PrimitiveType.hpp>
+
+#include <iostream>
 #include <limits>
 #include <stdexcept>
 
@@ -72,11 +73,11 @@ BackpropagationNetwork::BackpropagationNetwork(
 
     for (std::size_t i = 0; i < hiddenLayers; ++i) {
         layers.emplace_back(hiddenLayerNeurons);
-        initLayer(i);
+        initLayer(i+1);
     }
 
     layers.emplace_back(output);
-
+    initLayer(hiddenLayers + 1);
 }
 
 void BackpropagationNetwork::initLayer(const size_t layerIdx) {
@@ -85,7 +86,7 @@ void BackpropagationNetwork::initLayer(const size_t layerIdx) {
     }
 
     const auto weigths = layers[layerIdx-1].neurons.size();
-    auto layer = layers[layerIdx];
+    auto & layer = layers[layerIdx];
 
     for (auto & neuron : layer) {
         neuron.weights.reserve(weigths);
@@ -120,7 +121,15 @@ void BackpropagationNetwork::validateInput(const std::vector<double> & input) {
 }
 
 double BackpropagationNetwork::neuronOutput(const Neuron & neuron, const std::vector<double> & inputs) {
-    return activationFn(neuronPotential(neuron, inputs));
+    const auto potential = neuronPotential(neuron, inputs);
+    /* std::cout << "Neuron inputs: "; */
+    /* for (size_t i = 0; i < inputs.size(); ++i) { */
+    /*     std::cout << "Neuron weights: " << neuron.weights.size() << std::endl; */
+    /*     std::cout << inputs[i] << "*" << neuron.weights[i] << ", "; */
+    /* } */
+    /* std::endl(std::cout); */
+    /* std::cout << "Neuron potential: " << potential << ", active value: " << activationFn(potential) << std::endl; */
+    return activationFn(potential);
 }
 
 double BackpropagationNetwork::neuronPotential(const Neuron & neuron, const std::vector<double> & inputs) {
@@ -134,7 +143,7 @@ double BackpropagationNetwork::neuronPotential(const Neuron & neuron, const std:
     return potential;
 }
 
-std::vector<double> BackpropagationNetwork::calcLayerValues(size_t layer, const std::vector<double> & inputs) {
+std::vector<double> BackpropagationNetwork::calcLayerValues(const size_t layer, const std::vector<double> & inputs) {
 
     const auto & current = layers[layer];
     std::vector<double> out(current.size(), 0.0);
@@ -159,12 +168,12 @@ std::vector<double> BackpropagationNetwork::outputValues(std::vector<double> inp
 std::vector<std::vector<double>> BackpropagationNetwork::outputsOfAllLayers(const std::vector<double> & inputs) {
 
     std::vector<std::vector<double>> outputs;
-    outputs.reserve(layers.size());
+    outputs.reserve(layers.size() - 1);
 
-    outputs.emplace_back(calcLayerValues(1, inputs));
+    outputs.emplace_back(inputs);
 
-    for (size_t i = 2; i < layers.size(); ++i) {
-        outputs.emplace_back(calcLayerValues(i, outputs[i-2]));
+    for (size_t i = 1; i < layers.size(); ++i) {
+        outputs.emplace_back(calcLayerValues(i, outputs[i-1]));
     }
 
     return outputs;
@@ -223,7 +232,9 @@ std::vector<double> BackpropagationNetwork::adjustHiddenLayer(const std::vector<
 
         Neuron & neuron = currentLayer[i];
         for (size_t j = 0; j < neuron.weights.size(); ++j) {
+            std::cout << "Old weight: " << neuron.weights[j] << ", ";
             neuron.weights[j] += eta * error * inputs[j];
+            std::cout << "New weight: " << neuron.weights[j] << std::endl;
         }
     }
 
@@ -233,6 +244,15 @@ std::vector<double> BackpropagationNetwork::adjustHiddenLayer(const std::vector<
 bool BackpropagationNetwork::teachIteration(const std::vector<double> & signals, const size_t expected) {
 
     auto outputs = outputsOfAllLayers(signals);
+
+    /* for (const auto & out : outputs) { */
+    /*     std::cout << "{ "; */
+    /*     for (const auto & sig : out) { */
+    /*         std::cout << sig << ", "; */
+    /*     } */
+    /*     std::cout << " }" << std::endl; */
+    /* } */
+
     const auto & outputLayer = outputs.back();
 
     const double error = calcNetworkError(signals, expected);
@@ -245,6 +265,9 @@ bool BackpropagationNetwork::teachIteration(const std::vector<double> & signals,
 
     // No need to adjust weights on input layer, thus, i != 0
     for (size_t i = outputs.size()-2; i != 0; --i) {
+        for (const auto & err : errors) {
+            std::cout << "Error: " << err << std::endl;
+        }
         errors = adjustHiddenLayer(outputs[i-1], outputs[i], i, errors, expected);
     }
 
