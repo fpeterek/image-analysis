@@ -123,7 +123,7 @@ void Recognizer<objects>::learn(const signals::ObjectSignals & toLearn) {
 template <std::uint32_t objects>
 std::uint32_t Recognizer<objects>::recognize(const signals::ObjectSignals & signals) {
 
-    std::uint32_t minDistIdx;
+    std::uint32_t minDistIdx = 0;
     double minDist = -1;
 
     for (std::uint32_t i = 0; i < objects; ++i) {

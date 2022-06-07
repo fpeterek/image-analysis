@@ -50,8 +50,8 @@ class BackpropagationNetwork {
 
     double lambda = 1.0;
     double eta = 0.1;
-    double threshold = 0.005;
-    int iterations = 1000;
+    double threshold = 0.001;
+    int iterations = 100'000'000; // std::numeric_limits<int>::max();
 
     std::vector<Layer> layers;
     std::mt19937 rnd { std::random_device()() };
@@ -72,7 +72,7 @@ class BackpropagationNetwork {
 
     std::vector<double> adjustOutputLayer(const std::vector<double> & inputs, const std::vector<double> & outputs, size_t expected);
 
-    std::vector<double> adjustHiddenLayer(const std::vector<double> & inputs, const std::vector<double> & outputs, size_t layer, const std::vector<double> & prevErrors, size_t expected);
+    std::vector<double> adjustHiddenLayer(const std::vector<double> & inputs, const std::vector<double> & outputs, size_t layer, const std::vector<double> & prevErrors);
 
     bool teachIteration(const std::vector<double> & signals, size_t expected);
 
