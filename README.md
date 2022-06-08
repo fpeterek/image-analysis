@@ -40,6 +40,9 @@ cmake . -DCMAKE_BUILD_TYPE=Release
 make
 ```
 
+CMake is setup to create a `compile_commands.json` file, which enables code analysis
+using LSP in editors which support the LSP protocol.
+
 Note: I use a rolling release distribution, thus, I always have the latest version
 of CMake. I do not care for the latest CMake features as much, therefore, if your
 distribution does not yet have the latest CMake in it's repositories, it may be fine
