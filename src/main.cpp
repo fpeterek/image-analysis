@@ -12,9 +12,12 @@
 
 void run() {
 
-    /* Due to the simple nature of the input image, we can fine tune the threshold */
+    /* Due to the simple nature of the input images, we can finetune the threshold */
     /* manually to suit our needs                                                  */
     ImageAnalyzer<3, ConstantThreshold<35>> analyzer;
+
+    // However, the following code would work as well
+    // ImageAnalyzer<3, HalfRangeThreshold> analyzer;
 
     analyzer.learn("resources/train/train.bmp");
     analyzer.recognize("resources/test/test.bmp");

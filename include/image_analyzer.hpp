@@ -151,15 +151,19 @@ void ImageAnalyzer<objects, ThresholdProvider>::learn(const sf::Image & img, con
 
     recognizer.learn(clusters);
 
-    // Teach the neural network
-    for (const auto & sig : sigVec) {
-        const auto type = recognizer.recognize(sig);
-        std::vector<double> sigs; 
-        sigs.emplace_back(sig.perimeterAreaRatio);
-        sigs.emplace_back(sig.momentOfInertia);
-        nn.teach(sigs, type);
-    }
+    std::vector<std::vector<double>> signals;
+    std::vector<size_t> expected;
 
+    std::cout << "Training neural network..." << std::endl;
+    // Train the neural network
+    for (const auto & sig : sigVec) {
+        expected.emplace_back(recognizer.recognize(sig));
+        signals.emplace_back(std::vector<double> { sig.perimeterAreaRatio, sig.momentOfInertia });
+
+    }
+    nn.teach(signals, expected);
+
+    std::cout << "Training completed" << std::endl;
 }
 
 template <std::uint32_t objects, typename ThresholdProvider>

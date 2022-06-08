@@ -48,10 +48,10 @@ namespace activ = activation;
 class BackpropagationNetwork {
     activ::fn activationFn;
 
-    double lambda = 1.0;
-    double eta = 0.1;
-    double threshold = 0.001;
-    int iterations = 100'000'000; // std::numeric_limits<int>::max();
+    static constexpr double lambda = 1.0;
+    static constexpr double eta = 0.1;
+    static constexpr double threshold = 0.001;
+    static constexpr int iterations = 100'000; // std::numeric_limits<int>::max();
 
     std::vector<Layer> layers;
     std::mt19937 rnd { std::random_device()() };
@@ -74,7 +74,9 @@ class BackpropagationNetwork {
 
     std::vector<double> adjustHiddenLayer(const std::vector<double> & inputs, const std::vector<double> & outputs, size_t layer, const std::vector<double> & prevErrors);
 
-    bool teachIteration(const std::vector<double> & signals, size_t expected);
+    double teach(const std::vector<double> & signals, size_t expected);
+
+    bool teachIteration(const std::vector<std::vector<double>> & signals, const std::vector<size_t> & expected);
 
 public:
 
@@ -83,7 +85,7 @@ public:
     size_t predict(const std::vector<double> & input);
     std::vector<double> outputValues(std::vector<double> input);
 
-    void teach(const std::vector<double> & signals, size_t expected);
+    void teach(const std::vector<std::vector<double>> & signals, const std::vector<size_t> & expected);
 
 };
 

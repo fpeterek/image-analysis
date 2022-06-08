@@ -197,7 +197,7 @@ std::vector<double> BackpropagationNetwork::adjustOutputLayer(const std::vector<
 
         Neuron & neuron = layers.back()[i];
         for (size_t j = 0; j < neuron.weights.size(); ++j) {
-            neuron.weights[j] -= eta * error * inputs[j];
+            neuron.weights[j] += eta * error * inputs[j];
         }
     }
 
@@ -224,21 +224,33 @@ std::vector<double> BackpropagationNetwork::adjustHiddenLayer(const std::vector<
 
         Neuron & neuron = currentLayer[i];
         for (size_t j = 0; j < neuron.weights.size(); ++j) {
-            neuron.weights[j] -= eta * error * inputs[j];
+            neuron.weights[j] += eta * error * inputs[j];
         }
     }
 
     return errors;
 }
 
-bool BackpropagationNetwork::teachIteration(const std::vector<double> & signals, const size_t expected) {
+bool BackpropagationNetwork::teachIteration(const std::vector<std::vector<double>> & signals, const std::vector<size_t> & expected) {
+
+    double maxError = 0;
+
+    for (size_t i = 0; i < signals.size(); ++i) {
+        const auto error = teach(signals[i], expected[i]);
+        maxError = std::max(error, maxError);
+    }
+
+    return maxError < threshold;
+}
+
+double BackpropagationNetwork::teach(const std::vector<double> & signals, const size_t expected) {
 
     auto outputs = outputsOfAllLayers(signals);
 
-    const double error = calcNetworkError(signals, expected);
+    const double error = calcNetworkError(outputs.back(), expected);
 
     if (error < threshold) {
-        return true;
+        return error;
     }
 
     std::vector<double> errors = adjustOutputLayer(outputs[outputs.size()-2], outputs[outputs.size()-1], expected);
@@ -248,15 +260,15 @@ bool BackpropagationNetwork::teachIteration(const std::vector<double> & signals,
         errors = adjustHiddenLayer(outputs[i-1], outputs[i], i, errors);
     }
 
-    return false;
+    return error;
+
 }
 
-void BackpropagationNetwork::teach(const std::vector<double> & signals, const size_t expected) {
+void BackpropagationNetwork::teach(const std::vector<std::vector<double>> & signals, const std::vector<size_t> & expected) {
     for (
         int i = 0;
         i < iterations and not teachIteration(signals, expected);
         ++i
     );
 }
-
 
