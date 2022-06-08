@@ -45,7 +45,7 @@ using LSP in editors which support the LSP protocol.
 
 Note: I use a rolling release distribution, thus, I always have the latest version
 of CMake. I do not care for the latest CMake features as much, therefore, if your
-distribution does not yet have the latest CMake in it's repositories, it may be fine
+distribution does not yet have the latest CMake in its repositories, it may be fine
 to relax the minimum CMake version requirement specified in the `CMakeLists.txt` file.
 
 ## Run
@@ -61,10 +61,10 @@ The input is hardcoded and can be located in the [resources](resources/) folder.
 ## Output
 
 The output is also hardcoded. The program outputs three files. `learning.reconstructed.png`
-and `recognition.reconstructed.png` display the results of segmentation using thresholding.
-`recognition.objects.png` displays the results of object recognition using a neural network.
-Each object is annotated with the number of its class. Class numbers are determined randomly
-at runtime.
+and `recognition.reconstructed.png` display the results of segmentation.
+`recognition.objects.png` displays the results of object recognition using a trained neural
+network. Each object is annotated with the number of its class. Class numbers are determined
+randomly at runtime.
 
 ## Code
 
