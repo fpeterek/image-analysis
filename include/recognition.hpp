@@ -16,12 +16,11 @@ struct Centroid {
     std::uint32_t objects     = 0;
 };
 
-class RecognizerUtil {
-public:
-    static Centroid calculateCentroid(const std::vector<signals::ObjectSignals> & cluster);
-    static Centroid calculateCentroid(const Centroid & origCentroid, const std::vector<signals::ObjectSignals> & cluster);
-    static Centroid calculateCentroid(const Centroid & left, const Centroid & right);
-    static double calcDistance(const Centroid & centroid, const signals::ObjectSignals & cluster);
+namespace recognizerUtil {
+    Centroid calculateCentroid(const std::vector<signals::ObjectSignals> & cluster);
+    Centroid calculateCentroid(const Centroid & origCentroid, const std::vector<signals::ObjectSignals> & cluster);
+    Centroid calculateCentroid(const Centroid & left, const Centroid & right);
+    double calcDistance(const Centroid & centroid, const signals::ObjectSignals & cluster);
 };
 
 template <std::uint32_t objects>
@@ -102,17 +101,17 @@ template <std::uint32_t objects>
 void Recognizer<objects>::assign(const std::array<std::vector<signals::ObjectSignals>, objects> & clusters) {
 
     for (std::uint32_t i = 0; i < objects; ++i) {
-        const auto centroid = RecognizerUtil::calculateCentroid(clusters[i]);
+        const auto centroid = recognizerUtil::calculateCentroid(clusters[i]);
         centroids[i] = centroid;
     }
 }
 
 template <std::uint32_t objects>
 void Recognizer<objects>::learn(const std::vector<signals::ObjectSignals> & toLearn) {
-    const auto centroid = RecognizerUtil::calculateCentroid(toLearn);
+    const auto centroid = recognizerUtil::calculateCentroid(toLearn);
     const auto closestIdx = findClosestCentroid(centroid);
 
-    centroids[closestIdx] = RecognizerUtil::calculateCentroid(centroids[closestIdx], centroid);
+    centroids[closestIdx] = recognizerUtil::calculateCentroid(centroids[closestIdx], centroid);
 }
 
 template <std::uint32_t objects>
@@ -127,7 +126,7 @@ std::uint32_t Recognizer<objects>::recognize(const signals::ObjectSignals & sign
     double minDist = -1;
 
     for (std::uint32_t i = 0; i < objects; ++i) {
-        const auto dist = RecognizerUtil::calcDistance(centroids[i], signals);
+        const auto dist = recognizerUtil::calcDistance(centroids[i], signals);
 
         if (minDist < 0 or dist < minDist) {
             minDist = dist;
